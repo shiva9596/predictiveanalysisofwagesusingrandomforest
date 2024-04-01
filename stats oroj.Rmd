@@ -1,0 +1,164 @@
+---
+title: "Statistical learning Project"
+subtitle: "Shiva Kumar peddapuram (811235874) Group:7"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+date: "2023-12-07"
+fontfamily: mathpazo
+fontsize: 10pt
+header-includes:
+   - \linespread{1.05}
+urlcolor: blue
+---
+
+**Install and Load Packages:**
+This code [install.packages("keras")] installs and loads the keras package, which is used for building and training neural networks.
+```{r}
+# Install and load necessary packages
+library(keras)
+```
+**Load MNIST Dataset:**
+The MNIST dataset is loaded, and the training and testing images (x_train and x_test) along with their corresponding labels (y_train and y_test) are assigned.
+```{r}
+# Load the MNIST dataset
+mnist <- dataset_mnist()
+x_train <- mnist$train$x
+y_train <- mnist$train$y
+x_test <- mnist$test$x
+y_test <- mnist$test$y
+# Preprocess the data: The data is preprocessed by reshaping the images and normalizing pixel values to the range [0, 1]. The labels are one-hot encoded using to_categorical to match the model's output format.
+x_train <- array_reshape(x_train, c(nrow(x_train), 784)) / 255
+x_test <- array_reshape(x_test, c(nrow(x_test), 784)) / 255
+y_train <- to_categorical(y_train, 10)
+y_test <- to_categorical(y_test, 10)
+# Build the neural network with no hidden layers, compiled with a categorical crossentropy loss function, Adam optimizer, and accuracy metric.
+model_no_hidden <- keras_model_sequential() %>%
+  layer_flatten(input_shape = c(784)) %>%
+  layer_dense(units = 10, activation = 'softmax')
+# Compile the model
+model_no_hidden %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = 'adam',
+  metrics = c('accuracy')
+)
+# Build the neural network with 1 hidden layer (128 nodes). Similar to the first model, it is compiled, and then trained on the training data.
+model_with_hidden <- keras_model_sequential() %>%
+  layer_flatten(input_shape = c(784)) %>%
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+# Compile the model
+model_with_hidden %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = 'adam',
+  metrics = c('accuracy')
+)
+
+# Train the models and store the training history.Both models are trained on the training data for 5 epochs with a batch size of 32.
+
+history_no_hidden <- model_no_hidden %>% fit(x_train, y_train, epochs = 5, batch_size = 32, validation_split = 0.2)
+
+history_with_hidden <- model_with_hidden %>% fit(x_train, y_train, epochs = 5, batch_size = 32, validation_split = 0.2)
+
+```
+The history records for the 2 models: one and not using a hidden layers (model_no_hidden) and the alternative with one hidden layer containing 128 nodes (model_with_hidden). Let's wreck down the key statistics from each schooling epoch:
+
+**Model with No Hidden Layers (model_no_hidden):**
+Epoch 1-5:
+
+- Training Loss: Ranges around 0.2302 to zero.2316
+
+- Training Accuracy: Ranges round 93.51% to 93.58%
+
+- Validation Loss: Ranges around 0.2673 to 0.2723
+
+- Validation Accuracy: Ranges around 92.77% to 93.09%
+
+**Model with 1 Hidden Layer (model_with_hidden):**
+Epoch 1-5: 
+
+- Training Loss: Ranges round 0.0013 to 0.0042
+
+- Training Accuracy: Ranges around 99.86% to 99.97%
+
+- Validation Loss: Ranges around 0.1331 to 0.1714
+
+- Validation Accuracy: Ranges around 97.41% to 97.90%
+
+**Explanation:**
+
+**Model with No Hidden Layer:**
+Achieves fantastically proper training and validation accuracy however can be prone to overfitting, because the validation accuracy is slightly decrease than the education accuracy.
+
+**Model with 1 Hidden Layer:**
+Achieves very high training and validation accuracy, indicating higher generalization performance and less overfitting compared to the version with no hidden layers.
+
+**Training Time:**
+The model with a hidden layer takes longer consistent with epoch (approximately five seconds) as compared to the version and not using a hidden layers (approximately three seconds). This is anticipated, because the model with a hidden layer entails extra parameters and computations.
+
+**Conclusion:**
+The model with one hidden layer appears to carry out better at the task, accomplishing better accuracy on both the education and validation sets. However, the choice of the quality version depends on the precise necessities and constraints of the software. The model with no hidden layers might be less complicated and faster but might not generalize as well as the model with a hidden layer.
+
+```{r}
+# Plot test loss for both models
+par(mfrow=c(1, 2))
+
+# Plot for no hidden layers model
+plot(history_no_hidden$metrics$val_loss, type = 'l', col = 'blue', ylab = 'Test Loss', xlab = 'Epochs', main = 'No Hidden Layers Model')
+lines(history_no_hidden$metrics$loss, col = 'red')
+
+# Plot for model with hidden layer
+plot(history_with_hidden$metrics$val_loss, type = 'l', col = 'blue', ylab = 'Test Loss', xlab = 'Epochs', main = 'Model with Hidden Layer')
+lines(history_with_hidden$metrics$loss, col = 'red')
+
+# Reset par
+par(mfrow=c(1, 1))
+
+# Plot test accuracy for both models
+par(mfrow=c(1, 2))
+
+# Plot for no hidden layers model
+plot(history_no_hidden$metrics$val_accuracy, type = 'l', col = 'blue', ylab = 'Test Accuracy', xlab = 'Epochs', main = 'No Hidden Layers Model')
+lines(history_no_hidden$metrics$accuracy, col = 'red')
+
+# Plot for model with hidden layer
+plot(history_with_hidden$metrics$val_accuracy, type = 'l', col = 'blue', ylab = 'Test Accuracy', xlab = 'Epochs', main = 'Model with Hidden Layer')
+lines(history_with_hidden$metrics$accuracy, col = 'red')
+
+# Reset par
+par(mfrow=c(1, 1))
+
+# Evaluate the model on the test set
+no_hidden_results <- model_no_hidden %>% evaluate(x_test, y_test)
+cat("No Hidden Layers - Test Loss:", no_hidden_results["loss"], "Test Accuracy:", no_hidden_results["accuracy"], "\n")
+
+# Evaluate the model on the test set
+with_hidden_results <- model_with_hidden %>% evaluate(x_test, y_test)
+cat("With 1 Hidden Layer - Test Loss:", with_hidden_results["loss"], "Test Accuracy:", with_hidden_results["accuracy"], "\n")
+
+```
+In conclusion, the assessment of the 2 neural network models at the MNIST take a look at set well-known shows awesome variations in their overall performance:
+
+**Model with No Hidden Layers:**
+
+- Test Loss: 0.2774
+
+- Test Accuracy: 92.82%
+
+The model with out hidden layers accomplished a reasonable test accuracy of 92.82%, however the test loss is comparatively better. This suggests that the model won't generalize as well to unseen data, indicating a capacity danger of overfitting.
+
+**Model with 1 Hidden Layer (128 Nodes):**
+
+- Test Loss: 0.1347
+
+- Test Accuracy: 97.95%
+
+The model with one hidden layer outperformed the no-hidden-layer version, showcasing a lower test loss and a better test accuracy of 97.95%. This shows better generalization to new information and indicates that the additional hidden layer and nodes make a contribution to taking more complex patterns in the handwritten digits.
+
+**Conclusion:**
+The model with one hidden layer containing 128 nodes demonstrates advanced performance at the MNIST check set, accomplishing a higher accuracy and lower loss. This shows that introducing a hidden layer enables the neural network higher constitute the underlying patterns within the information. When faced with digit type tasks, this model is a greater effective desire for accurate and sturdy predictions on unseen handwritten digits.
+
+
+
